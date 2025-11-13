@@ -33,43 +33,28 @@ class _QuizBankPageState extends State<QuizBankPage> {
     setState(() => _isLoading = true);
 
     try {
-      print('=== 문제은행 로딩 시작 ===');
-
       // 모든 다이어리를 가져와서 공부 카테고리만 필터링
       final allDiaries = await _diaryService.getUserDiaries();
-      print('전체 다이어리 개수: ${allDiaries.length}');
 
       final studyDiaries = allDiaries.where((diary) => diary.category == DiaryCategory.study).toList();
-      print('공부 다이어리 개수: ${studyDiaries.length}');
 
       Map<String, List<QuizQuestion>> quizzesByDiary = {};
       Map<String, String> diaryTitles = {};
 
       for (final diary in studyDiaries) {
-        print('다이어리 처리 중: ${diary.title}');
-        print('AI 분석 존재: ${diary.aiAnalysis != null}');
-
         if (diary.aiAnalysis != null) {
-          print('AI 분석 데이터: ${diary.aiAnalysis}');
-          print('카테고리별 분석 존재: ${diary.aiAnalysis!.containsKey('categorySpecific')}');
-
           if (diary.aiAnalysis!['categorySpecific'] != null) {
             try {
               final categoryData = diary.aiAnalysis!['categorySpecific'];
-              print('카테고리 데이터 타입: ${categoryData.runtimeType}');
-              print('카테고리 데이터: $categoryData');
 
               final studyAnalysis = StudyAnalysis.fromJson(
                 categoryData as Map<String, dynamic>
               );
 
-              print('퀴즈 문제 개수: ${studyAnalysis.quizQuestions.length}');
-
               // 다이어리별로 문제 저장
               quizzesByDiary[diary.id] = studyAnalysis.quizQuestions;
               diaryTitles[diary.id] = diary.title;
             } catch (e) {
-              print('StudyAnalysis 파싱 오류: $e');
             }
           }
         }

@@ -13,9 +13,8 @@ void main() async {
     await initializeDateFormatting('ko', null);
 
     // Firebase 초기화 완전 비활성화 (로컬 모드)
-    print('로컬 모드로 실행 - Firebase 사용 안함');
   } catch (e) {
-    print('초기화 오류: $e');
+    // 초기화 오류 무시
   }
 
   runApp(const MyAppRoot());

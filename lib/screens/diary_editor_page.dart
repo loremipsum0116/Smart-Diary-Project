@@ -782,11 +782,6 @@ class _DiaryEditorPageState extends State<DiaryEditorPage> {
         _selectedCategory!,
       );
 
-      print('=== setState 호출 전 ===');
-      print('분석 결과 요약: ${analysis.summary}');
-      print('제안된 태그 개수: ${analysis.suggestedTags.length}');
-      print('제안된 스티커 개수: ${analysis.suggestedStickers.length}');
-
       setState(() {
         _aiAnalysis = analysis;
         if (analysis.suggestedTags.isNotEmpty) {
@@ -798,17 +793,9 @@ class _DiaryEditorPageState extends State<DiaryEditorPage> {
         _selectedTheme = analysis.suggestedTheme;
       });
 
-      print('=== setState 호출 후 ===');
-      print('_aiAnalysis null 여부: ${_aiAnalysis == null}');
-      print('태그 개수: ${_tags.length}');
-      print('스티커 개수: ${_selectedStickers.length}');
-      print('테마: $_selectedTheme');
-
       // AI 분석 후 자동 저장 (기존 다이어리인 경우만)
       if (widget.diary != null) {
-        print('기존 일기 - 자동 저장 시도');
         await _saveDiary();
-        print('자동 저장 완료');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('AI 분석이 완료되고 저장되었습니다!')),

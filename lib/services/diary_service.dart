@@ -116,15 +116,9 @@ class DiaryService {
   Future<DiaryAIAnalysis> analyzeDiary(String content, DiaryCategory category) async {
     try {
       String prompt = _buildAnalysisPrompt(content, category);
-      print('=== AI 분석 시작 ===');
-      print('카테고리: ${category.korean}');
-      print('내용 길이: ${content.length}자');
-      print('API 키 존재: ${ApiKeys.geminiApiKey.isNotEmpty}');
-      print('API 키 길이: ${ApiKeys.geminiApiKey.length}');
 
       // Content를 정확하게 생성
       final contents = [Content.text(prompt)];
-      print('Content 생성 완료');
 
       // 타임아웃 설정과 함께 API 호출
       final response = await model.generateContent(contents).timeout(
@@ -134,34 +128,16 @@ class DiaryService {
         },
       );
 
-      print('API 응답 받음');
       final responseText = response.text;
 
       if (responseText == null || responseText.isEmpty) {
         throw Exception('AI 응답이 비어있음');
       }
 
-      print('=== AI 응답 ===');
-      print('응답 길이: ${responseText.length}자');
-      print('응답 내용 (전체):');
-      // Flutter print는 긴 문자열을 자르므로 여러 부분으로 나눠 출력
-      final chunkSize = 800;
-      for (var i = 0; i < responseText.length; i += chunkSize) {
-        final end = (i + chunkSize < responseText.length) ? i + chunkSize : responseText.length;
-        print('청크 ${i ~/ chunkSize + 1}: ${responseText.substring(i, end)}');
-      }
-      print('=== 응답 끝 ===');
-
       final analysis = _parseAIResponse(responseText, category);
-      print('=== 파싱 결과 ===');
-      print('요약: ${analysis.summary}');
-      print('조언: ${analysis.advice}');
-      print('태그: ${analysis.suggestedTags}');
 
       return analysis;
     } catch (e) {
-      print('Error analyzing diary (상세): $e');
-      print('에러 타입: ${e.runtimeType}');
       if (e.toString().contains('not found') || e.toString().contains('not supported')) {
         print('모델명 문제 감지됨');
       }

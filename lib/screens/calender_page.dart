@@ -36,26 +36,21 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _onTodosChanged() {
-    print('캘린더: Todo 변경 감지 - 자동 새로고침');
     _loadAllTodos();
   }
 
   /// ✅ SharedPreferences에서 사용자 일정 불러오기
   Future<void> _loadAllTodos() async {
-    print('=== 캘린더: Todo 로딩 시작 ===');
     final prefs = await SharedPreferences.getInstance();
     final String? todosJson = prefs.getString('todos');
 
     if (todosJson == null) {
-      print('캘린더: 저장된 Todo 없음');
       setState(() => _todosByDate = {});
       return;
     }
 
     final List<dynamic> todosList = json.decode(todosJson);
     final List<Todo> todos = todosList.map((m) => Todo.fromMap(m as Map<String, dynamic>)).toList();
-
-    print('캘린더: 로드된 Todo 개수: ${todos.length}');
 
     final Map<DateTime, List<Todo>> loaded = {};
     for (var todo in todos) {
@@ -64,19 +59,14 @@ class _CalendarPageState extends State<CalendarPage> {
         final normalized = DateTime(date.year, date.month, date.day);
         loaded.putIfAbsent(normalized, () => []);
         loaded[normalized]!.add(todo);
-        print('캘린더: ${date.year}년 ${date.month}월 ${date.day}일 (정규화: ${normalized.toString().substring(0, 10)}) - ${todo.title}');
-      } else {
-        print('캘린더: 마감일 없음 - ${todo.title}');
       }
     }
 
-    print('캘린더: 날짜별 Todo 개수: ${loaded.length}');
     setState(() => _todosByDate = loaded);
   }
 
   /// ✅ 외부에서 호출할 수 있는 새로고침 메서드
   void refresh() {
-    print('캘린더: 새로고침 요청됨');
     _loadAllTodos();
   }
 

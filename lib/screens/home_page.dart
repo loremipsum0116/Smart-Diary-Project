@@ -77,7 +77,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     // Todo 변경 알림 - 캘린더에 즉시 반영
     _todosChangedNotifier.value++;
-    print('홈: Todo 변경 알림 발송 (${_todosChangedNotifier.value})');
   }
 
   Future<void> _restore() async {
