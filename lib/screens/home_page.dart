@@ -99,6 +99,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       Priority priority,
       NotificationInterval notificationInterval,
       ) async {
+    // 알림 시간 계산
+    DateTime? notificationTime;
+    if (dueDate != null && dueTime != null) {
+      notificationTime = DateTime(
+        dueDate.year,
+        dueDate.month,
+        dueDate.day,
+        dueTime.hour,
+        dueTime.minute,
+      );
+    }
+
     final todo = Todo(
       id: TimeZoneUtils.kstNow.millisecondsSinceEpoch.toString(),
       title: title.trim(),
@@ -110,6 +122,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       dueDateType: dueDateType,
       priority: priority,
       notificationInterval: notificationInterval,
+      notificationTime: notificationTime,
       nextNotificationTime: notificationInterval != NotificationInterval.none
           ? NotificationManager.calculateNextNotification(
         TimeZoneUtils.kstNow,
@@ -119,6 +132,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
     setState(() => todos.add(todo));
     await _persist();
+
+    // 알림 스케줄링
+    if (notificationTime != null) {
+      await NotificationManager().scheduleTodoNotification(todo);
+    }
   }
 
   Future<void> _toggleDone(Todo t) async {
@@ -137,8 +155,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     await _persist();
 
+    // 완료 시 알림 취소, 미완료로 되돌릴 때 알림 재설정
     if (!wasDone && t.done) {
+      await NotificationManager().cancelTodoNotification(t.id);
       await _saveCompletionToFirestore(t);
+    } else if (wasDone && !t.done && t.notificationTime != null) {
+      await NotificationManager().scheduleTodoNotification(t);
     }
   }
 
@@ -204,6 +226,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     setState(() => todos.removeAt(index));
     await _persist();
 
+    // 알림 취소
+    await NotificationManager().cancelTodoNotification(removed.id);
+
     if (showUndo && mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -214,6 +239,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             onPressed: () async {
               setState(() => todos.insert(index, removed));
               await _persist();
+              // 알림 다시 스케줄링
+              if (removed.notificationTime != null) {
+                await NotificationManager().scheduleTodoNotification(removed);
+              }
             },
           ),
         ),
